@@ -1,0 +1,35 @@
+{
+  "slack_token": "TODO",
+  "jobs": [
+    {
+      "id": "first",
+      "cron": "* * * * *",
+      "content_list": [
+        {
+          "id": "misato-image",
+          "type": "image",
+          "text": "Required text for image type",
+          "path": "https://static.wikia.nocookie.net/evangelion/images/5/5b/NGE02_73.png/revision/latest/scale-to-width-down/1000?cb=20190930060312"
+        },
+        {
+          "id": "misato-beer",
+          "type": "file-local",
+          "text": null,
+          "path": "./assets/misato-beer.mp4"
+        },
+        {
+          "id": "misato-monday",
+          "type": "file-local",
+          "text": null,
+          "path": "./assets/monday-misato-1.mp4"
+        },
+        {
+          "id": "your-weekend-video-file-local",
+          "type": "file-local",
+          "text": null,
+          "path": "./assets/friday-1.mp4"
+        }
+      ]
+    }
+  ]
+}
