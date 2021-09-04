@@ -169,7 +169,7 @@ func (a *App) sendFileLocal(ctx context.Context, content model.Content) error {
 	return nil
 }
 
-// getFile load file and return request body readcloser, which must be closed by caller
+// getFile load file and return request body io.ReadCloser, which must be closed by caller
 func (a *App) getFileHTTP(ctx context.Context, path string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
@@ -188,7 +188,7 @@ func (a *App) getFileHTTP(ctx context.Context, path string) (io.ReadCloser, erro
 	return resp.Body, nil
 }
 
-// getFile load file and return request body readcloser, which must be closed by caller
+// getFile open file and return file io.ReadCloser, which must be closed by caller
 func (a *App) getFileLocal(path string) (io.ReadCloser, error) {
 	f, err := os.Open(path)
 	if err != nil {
