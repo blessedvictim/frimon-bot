@@ -1,6 +1,8 @@
 package config
 
 import (
+	"bytes"
+
 	"github.com/blessedvictim/frimon-bot/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -11,11 +13,20 @@ type Config struct {
 	Jobs       []model.Job `mapstructure:"jobs"`
 }
 
+var embedRawConfig []byte
+
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("config")
+	var err error
+
 	viper.SetConfigType("json")
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
+
+	if embedRawConfig != nil {
+		err = viper.ReadConfig(bytes.NewReader(embedRawConfig))
+	} else {
+		viper.SetConfigName("config")
+		viper.AddConfigPath("./config")
+		err = viper.ReadInConfig()
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot read config")
 	}

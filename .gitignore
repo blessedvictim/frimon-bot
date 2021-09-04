@@ -15,4 +15,4 @@
 # vendor/
 .env
 .idea
-config.json
+config/config.json
