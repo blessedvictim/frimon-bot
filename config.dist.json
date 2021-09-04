@@ -4,6 +4,7 @@
     {
       "id": "first",
       "cron": "* * * * *",
+      "slack_channel": "#frimon",
       "content_list": [
         {
           "id": "misato-image",

@@ -56,11 +56,11 @@ func (a *App) executor(job model.Job) error {
 	var err error
 	switch content.Type {
 	case model.ContentTypeImage:
-		err = a.sendImage(ctx, content)
+		err = a.sendImage(ctx, job.SlackChannel, content)
 	case model.ContentTypeFileLocal:
-		err = a.sendFileLocal(ctx, content)
+		err = a.sendFileLocal(ctx, job.SlackChannel, content)
 	case model.ContentTypeFile:
-		err = a.sendFile(ctx, content)
+		err = a.sendFile(ctx, job.SlackChannel, content)
 	default:
 		return errors.Errorf("undefined content type %s", content.Type)
 	}
@@ -76,7 +76,7 @@ func (a *App) executor(job model.Job) error {
 	return err
 }
 
-func (a *App) sendImage(ctx context.Context, content model.Content) error {
+func (a *App) sendImage(ctx context.Context, channel string, content model.Content) error {
 	var title string
 	if content.Text != nil {
 		title = *content.Text
@@ -84,7 +84,7 @@ func (a *App) sendImage(ctx context.Context, content model.Content) error {
 
 	_, _, _, err := a.slackClient.SendMessageContext(
 		ctx,
-		"#random",
+		channel,
 		slack.MsgOptionAsUser(true),
 		slack.MsgOptionUsername("Friday here"),
 		slack.MsgOptionBlocks(
@@ -104,7 +104,7 @@ func (a *App) sendImage(ctx context.Context, content model.Content) error {
 	return nil
 }
 
-func (a *App) sendFile(ctx context.Context, content model.Content) error {
+func (a *App) sendFile(ctx context.Context, chanel string, content model.Content) error {
 	file, err := a.getFileHTTP(ctx, content.Path)
 	if err != nil {
 		return errors.Wrap(err, "get file http failed")
@@ -127,7 +127,7 @@ func (a *App) sendFile(ctx context.Context, content model.Content) error {
 		Filename:        content.ID,
 		Title:           title,
 		InitialComment:  "",
-		Channels:        []string{"#random"},
+		Channels:        []string{chanel},
 		ThreadTimestamp: "",
 	})
 	if err != nil {
@@ -137,7 +137,7 @@ func (a *App) sendFile(ctx context.Context, content model.Content) error {
 	return nil
 }
 
-func (a *App) sendFileLocal(ctx context.Context, content model.Content) error {
+func (a *App) sendFileLocal(ctx context.Context, channel string, content model.Content) error {
 	file, err := a.getFileLocal(content.Path)
 	if err != nil {
 		return errors.Wrap(err, "get local file failed")
@@ -159,7 +159,7 @@ func (a *App) sendFileLocal(ctx context.Context, content model.Content) error {
 		Filename:        content.ID,
 		Title:           title,
 		InitialComment:  "",
-		Channels:        []string{"#random"},
+		Channels:        []string{channel},
 		ThreadTimestamp: "",
 	})
 	if err != nil {

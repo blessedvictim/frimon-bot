@@ -3,9 +3,10 @@ package model
 import "time"
 
 type Job struct {
-	ID          string    `mapstructure:"id"`
-	Cron        string    `mapstructure:"cron"`
-	ContentList []Content `mapstructure:"content_list"`
+	ID           string    `mapstructure:"id"`
+	Cron         string    `mapstructure:"cron"`
+	SlackChannel string    `mapstructure:"slack_channel"`
+	ContentList  []Content `mapstructure:"content_list"`
 }
 
 type Content struct {
