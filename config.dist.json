@@ -28,6 +28,12 @@
           "type": "file-local",
           "text": null,
           "path": "./assets/friday-1.mp4"
+        },
+        {
+          "id": "misato-random #3",
+          "type": "file",
+          "text": "random #3",
+          "path": "https://docs.google.com/uc?export=download&id=1nt_9yohDnzxOyAIZfelbf5bahzgwK4tV"
         }
       ]
     }

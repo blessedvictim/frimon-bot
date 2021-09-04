@@ -5,7 +5,6 @@ import (
 
 	"github.com/blessedvictim/frimon-bot/app"
 	"github.com/blessedvictim/frimon-bot/config"
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
 )

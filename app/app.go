@@ -110,6 +110,10 @@ func (a *App) sendFile(ctx context.Context, content model.Content) error {
 		return errors.Wrap(err, "get file http failed")
 	}
 
+	defer func() {
+		_ = file.Close()
+	}()
+
 	var title string
 	if content.Text != nil {
 		title = *content.Text
@@ -138,6 +142,9 @@ func (a *App) sendFileLocal(ctx context.Context, content model.Content) error {
 	if err != nil {
 		return errors.Wrap(err, "get local file failed")
 	}
+	defer func() {
+		_ = file.Close()
+	}()
 
 	var title string
 	if content.Text != nil {
