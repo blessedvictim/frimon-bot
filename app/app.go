@@ -33,6 +33,8 @@ func New(slackClient *slack.Client, httpClient *http.Client, cfg *config.Config)
 }
 
 func (a *App) Run() error {
+	lastContent := make(chan string, 1)
+	defer close(lastContent) // WIP
 	scheduler := gocron.NewScheduler(time.UTC)
 
 	for _, job := range a.cfg.Jobs {
@@ -47,12 +49,27 @@ func (a *App) Run() error {
 	return nil
 }
 
-func (a *App) executor(job model.Job) error {
+func (a *App) executor(job model.Job, ch chan string) error {
 	ctx := context.Background()
+	var (
+		lastContent        string
+		currentContentList []model.Content
+	)
 
-	i := rand.Intn(len(job.ContentList))
-	content := job.ContentList[i]
+	select { // TODO
+	case lastContent = <-ch:
+		for i, _ := range job.ContentList {
+			if job.ContentList[i].ID != lastContent {
+				currentContentList = append(currentContentList, job.ContentList[i])
+			}
+		}
+	default:
+		currentContentList = job.ContentList
+	}
 
+	i := rand.Intn(len(currentContentList))
+	content := currentContentList[i]
+	ch <- content.ID // TODO
 	var err error
 	switch content.Type {
 	case model.ContentTypeImage:
