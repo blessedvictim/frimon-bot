@@ -1,4 +1,4 @@
-package http_lol
+package answer
 
 import (
 	"encoding/json"
@@ -7,17 +7,28 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
-func Run() error {
+type Module struct {
+	slackClient *slack.Client
+}
+
+func New(slackClient *slack.Client) *Module {
+	return &Module{
+		slackClient: slackClient,
+	}
+}
+
+func (m *Module) Run() error {
 	f := fiber.New()
 
 	f.Use(recover.New())
 
-	f.Get("/slack_events", func(c *fiber.Ctx) error {
+	f.Post("/slack_events", func(c *fiber.Ctx) error {
 		body := c.Body()
 
 		var req http.Request
@@ -27,7 +38,7 @@ func Run() error {
 			return err
 		}
 
-		sv, err := slack.NewSecretsVerifier(req.Header, "")
+		sv, err := slack.NewSecretsVerifier(req.Header, "fab1308090a953a4380b6950178b74e2")
 		if err != nil {
 			return c.SendStatus(http.StatusBadRequest)
 		}
@@ -56,9 +67,22 @@ func Run() error {
 			innerEvent := eventsAPIEvent.InnerEvent
 			switch ev := innerEvent.Data.(type) {
 			case *slackevents.AppMentionEvent:
+				// хак, иначе происходит пиздец
+				var ts = ev.TimeStamp
+				if ev.ThreadTimeStamp != "" {
+					ts = ev.ThreadTimeStamp
+				}
+
 				fmt.Println(ev.Text)
-				// TODO
-				//api.PostMessage(ev.Channel, slack.MsgOptionText("Yes, hello.", false))
+				// ответить "иди нах"
+				_, _, e := m.slackClient.PostMessage(
+					ev.Channel,
+					slack.MsgOptionTS(ts),
+					slack.MsgOptionText("ПошЕЛ НАХУЙ", false),
+				)
+				if e != nil {
+					log.Error().Err(err).Msg("send answer failed")
+				}
 			}
 		}
 

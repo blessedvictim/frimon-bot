@@ -1,4 +1,4 @@
-package app
+package schedule
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type App struct {
+type Module struct {
 	cfg *config.Config
 
 	slackClient *slack.Client
@@ -24,15 +24,15 @@ type App struct {
 	httpClient *http.Client
 }
 
-func New(slackClient *slack.Client, httpClient *http.Client, cfg *config.Config) *App {
-	return &App{
+func New(slackClient *slack.Client, httpClient *http.Client, cfg *config.Config) *Module {
+	return &Module{
 		cfg:         cfg,
 		slackClient: slackClient,
 		httpClient:  httpClient,
 	}
 }
 
-func (a *App) Run() error {
+func (a *Module) Run() error {
 	scheduler := gocron.NewScheduler(time.UTC)
 
 	for _, job := range a.cfg.Jobs {
@@ -47,7 +47,7 @@ func (a *App) Run() error {
 	return nil
 }
 
-func (a *App) executor(job model.Job) error {
+func (a *Module) executor(job model.Job) error {
 	ctx := context.Background()
 
 	i := rand.Intn(len(job.ContentList))
@@ -76,7 +76,7 @@ func (a *App) executor(job model.Job) error {
 	return err
 }
 
-func (a *App) sendImage(ctx context.Context, channel string, content model.Content) error {
+func (a *Module) sendImage(ctx context.Context, channel string, content model.Content) error {
 	var title string
 	if content.Text != nil {
 		title = *content.Text
@@ -104,7 +104,7 @@ func (a *App) sendImage(ctx context.Context, channel string, content model.Conte
 	return nil
 }
 
-func (a *App) sendFile(ctx context.Context, chanel string, content model.Content) error {
+func (a *Module) sendFile(ctx context.Context, chanel string, content model.Content) error {
 	file, err := a.getFileHTTP(ctx, content.Path)
 	if err != nil {
 		return errors.Wrap(err, "get file http failed")
@@ -137,7 +137,7 @@ func (a *App) sendFile(ctx context.Context, chanel string, content model.Content
 	return nil
 }
 
-func (a *App) sendFileLocal(ctx context.Context, channel string, content model.Content) error {
+func (a *Module) sendFileLocal(ctx context.Context, channel string, content model.Content) error {
 	file, err := a.getFileLocal(content.Path)
 	if err != nil {
 		return errors.Wrap(err, "get local file failed")
@@ -170,7 +170,7 @@ func (a *App) sendFileLocal(ctx context.Context, channel string, content model.C
 }
 
 // getFile load file and return request body io.ReadCloser, which must be closed by caller
-func (a *App) getFileHTTP(ctx context.Context, path string) (io.ReadCloser, error) {
+func (a *Module) getFileHTTP(ctx context.Context, path string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "make req failed")
@@ -189,7 +189,7 @@ func (a *App) getFileHTTP(ctx context.Context, path string) (io.ReadCloser, erro
 }
 
 // getFile open file and return file io.ReadCloser, which must be closed by caller
-func (a *App) getFileLocal(path string) (io.ReadCloser, error) {
+func (a *Module) getFileLocal(path string) (io.ReadCloser, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "open file failed")
