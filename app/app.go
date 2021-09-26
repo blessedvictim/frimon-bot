@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
+	"github.com/blessedvictim/frimon-bot/utils"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -51,33 +51,17 @@ func (a *App) Run() error {
 
 func (a *App) executor(job model.Job, ch chan string) error {
 	ctx := context.Background()
-	var (
-		lastContent        string
-		currentContentList []model.Content
-	)
 
-	select { // TODO
-	case lastContent = <-ch:
-		for i, _ := range job.ContentList {
-			if job.ContentList[i].ID != lastContent {
-				currentContentList = append(currentContentList, job.ContentList[i])
-			}
-		}
-	default:
-		currentContentList = job.ContentList
-	}
+	content := utils.GetCurrentJob(&job, ch)
 
-	i := rand.Intn(len(currentContentList))
-	content := currentContentList[i]
-	ch <- content.ID // TODO
 	var err error
 	switch content.Type {
 	case model.ContentTypeImage:
-		err = a.sendImage(ctx, job.SlackChannel, content)
+		err = a.sendImage(ctx, job.SlackChannel, *content)
 	case model.ContentTypeFileLocal:
-		err = a.sendFileLocal(ctx, job.SlackChannel, content)
+		err = a.sendFileLocal(ctx, job.SlackChannel, *content)
 	case model.ContentTypeFile:
-		err = a.sendFile(ctx, job.SlackChannel, content)
+		err = a.sendFile(ctx, job.SlackChannel, *content)
 	default:
 		return errors.Errorf("undefined content type %s", content.Type)
 	}
