@@ -38,7 +38,7 @@ func (a *App) Run() error {
 	scheduler := gocron.NewScheduler(time.UTC)
 
 	for _, job := range a.cfg.Jobs {
-		_, err := scheduler.Cron(job.Cron).Do(a.executor, job)
+		_, err := scheduler.Cron(job.Cron).Do(a.executor, job, lastContent)
 		if err != nil {
 			return errors.Wrapf(err, "cron job #%s failed", job.ID)
 		}
