@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
+	"github.com/blessedvictim/frimon-bot/utils"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -33,10 +33,12 @@ func New(slackClient *slack.Client, httpClient *http.Client, cfg *config.Config)
 }
 
 func (a *App) Run() error {
+	lastContent := make(chan string, 1)
+	defer close(lastContent) // WIP
 	scheduler := gocron.NewScheduler(time.UTC)
 
 	for _, job := range a.cfg.Jobs {
-		_, err := scheduler.Cron(job.Cron).Do(a.executor, job)
+		_, err := scheduler.Cron(job.Cron).Do(a.executor, job, lastContent)
 		if err != nil {
 			return errors.Wrapf(err, "cron job #%s failed", job.ID)
 		}
@@ -47,20 +49,19 @@ func (a *App) Run() error {
 	return nil
 }
 
-func (a *App) executor(job model.Job) error {
+func (a *App) executor(job model.Job, ch chan string) error {
 	ctx := context.Background()
 
-	i := rand.Intn(len(job.ContentList))
-	content := job.ContentList[i]
+	content := utils.GetCurrentJob(&job, ch)
 
 	var err error
 	switch content.Type {
 	case model.ContentTypeImage:
-		err = a.sendImage(ctx, job.SlackChannel, content)
+		err = a.sendImage(ctx, job.SlackChannel, *content)
 	case model.ContentTypeFileLocal:
-		err = a.sendFileLocal(ctx, job.SlackChannel, content)
+		err = a.sendFileLocal(ctx, job.SlackChannel, *content)
 	case model.ContentTypeFile:
-		err = a.sendFile(ctx, job.SlackChannel, content)
+		err = a.sendFile(ctx, job.SlackChannel, *content)
 	default:
 		return errors.Errorf("undefined content type %s", content.Type)
 	}
