@@ -1,11 +1,12 @@
 package app
 
 import (
+	"container/ring"
 	"context"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/blessedvictim/frimon-bot/config"
@@ -47,11 +48,23 @@ func (a *App) Run() error {
 	return nil
 }
 
+var r *ring.Ring
+var once sync.Once
+
 func (a *App) executor(job model.Job) error {
 	ctx := context.Background()
 
-	i := rand.Intn(len(job.ContentList))
-	content := job.ContentList[i]
+	once.Do(func() {
+		r = ring.New(len(job.ContentList))
+		for i := 0; i < r.Len(); i++ {
+			r.Value = job.ContentList[i]
+			r = r.Next()
+		}
+		r = r.Next()
+	})
+
+	content := r.Value.(model.Content)
+	r = r.Next()
 
 	var err error
 	switch content.Type {
